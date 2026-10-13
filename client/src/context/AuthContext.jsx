@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../services/api';
-
-const AuthContext = createContext(null);
+import { AuthContext } from './useAuth';
 
 /**
  * Authentication Provider component to wrap the application and share user session state.
@@ -19,7 +18,7 @@ export function AuthProvider({ children }) {
         if (response.data.authenticated) {
           setUser(response.data.session);
         }
-      } catch (err) {
+      } catch {
         console.log('No active session found / No se encontró sesión activa');
         setUser(null);
       } finally {
@@ -58,8 +57,3 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
-/**
- * Custom hook to consume AuthContext / Hook personalizado para consumir el contexto de autenticación
- */
-export const useAuth = () => useContext(AuthContext);

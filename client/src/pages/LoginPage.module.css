@@ -1,0 +1,283 @@
+.page {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 32px 20px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Orbes de resplandor ambiental */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.orbAmber {
+  width: 34rem;
+  height: 34rem;
+  top: -12rem;
+  left: -10rem;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.55), transparent 65%);
+  animation: float-slow 9s var(--ease-out) infinite;
+}
+
+.orbOrange {
+  width: 28rem;
+  height: 28rem;
+  bottom: -10rem;
+  right: -8rem;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.5), transparent 65%);
+  animation: float-slow 11s var(--ease-out) infinite reverse;
+}
+
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 36px 36px;
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  animation: fade-in-up var(--transition-slow) both;
+}
+
+/* Línea superior con degradado cálido */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: var(--accent-gradient);
+  opacity: 0.9;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.brandMark {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-md);
+  color: #1a1206;
+  background: var(--accent-gradient);
+  box-shadow: var(--glow-amber);
+}
+
+.brandMark svg {
+  width: 28px;
+  height: 28px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.errorAlert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 22px;
+  font-size: 0.875rem;
+  color: #fecaca;
+  background: var(--danger-soft);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--radius-md);
+  animation: fade-in var(--transition-base) both;
+}
+
+.errorAlert svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--danger);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  color: var(--text-faint);
+  pointer-events: none;
+  transition: color var(--transition-fast);
+}
+
+.input {
+  width: 100%;
+  padding: 13px 44px 13px 42px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  background: var(--surface-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.input::placeholder {
+  color: var(--text-faint);
+}
+
+.input:hover {
+  border-color: var(--border-strong);
+}
+
+.input:focus {
+  background: rgba(11, 15, 25, 0.85);
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+}
+
+.inputWrap:focus-within .inputIcon {
+  color: var(--accent-amber);
+}
+
+/* Botón para mostrar/ocultar contraseña */
+.toggle {
+  position: absolute;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: var(--text-faint);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.toggle:hover {
+  color: var(--accent-amber-bright);
+  background: var(--accent-amber-soft);
+}
+
+.toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 18px;
+  margin-top: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #1a1206;
+  background: var(--accent-gradient);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: var(--glow-amber);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-base),
+    filter var(--transition-fast);
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--glow-orange);
+  filter: brightness(1.06);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--accent-amber-bright);
+  outline-offset: 3px;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  filter: grayscale(0.15);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(26, 18, 6, 0.35);
+  border-top-color: #1a1206;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+.footer {
+  margin-top: 26px;
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--text-faint);
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 32px 22px 28px;
+  }
+}

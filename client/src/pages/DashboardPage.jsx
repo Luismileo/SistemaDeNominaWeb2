@@ -1,6 +1,18 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
+import styles from './DashboardPage.module.css';
+
+/**
+ * Derive up to two initials from the user name for the avatar.
+ * Deriva hasta dos iniciales del nombre de usuario para el avatar.
+ */
+const getInitials = (name = '') =>
+  name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('') || 'US';
 
 /**
  * Dashboard Page Component (Main protected view).
@@ -10,123 +22,111 @@ export function DashboardPage() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const profiles = user?.profile ?? [];
+  const primaryRole = profiles.length > 0 ? profiles[0] : 'Usuario';
+
   const handleLogoutClick = async () => {
     await logout();
     navigate('/login', { replace: true });
   };
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <div style={styles.headerContent}>
-          <h1 style={styles.brand}>Sistema de Nómina</h1>
-          <div style={styles.userInfo}>
-            <span style={styles.welcomeText}>Hola, <strong>{user?.userName}</strong></span>
-            <button onClick={handleLogoutClick} style={styles.logoutButton}>
-              Cerrar Sesión
+    <div className={styles.shell}>
+      <header className={styles.topbar}>
+        <div className={styles.topbarInner}>
+          <div className={styles.brand}>
+            <span className={styles.brandMark} aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <path d="M2 10h20" />
+                <path d="M6 15h4" />
+              </svg>
+            </span>
+            <div className={styles.brandText}>
+              <span className={styles.brandTitle}>Sistema de Nómina</span>
+              <span className={styles.brandSubtitle}>Panel de gestión</span>
+            </div>
+          </div>
+
+          <div className={styles.userArea}>
+            <div className={styles.userChip}>
+              <span className={styles.avatar} aria-hidden="true">
+                {getInitials(user?.userName)}
+              </span>
+              <div className={styles.userMeta}>
+                <span className={styles.userName}>{user?.userName}</span>
+                <span className={styles.userRole}>{primaryRole}</span>
+              </div>
+            </div>
+
+            <button onClick={handleLogoutClick} className={styles.logoutButton}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <path d="m16 17 5-5-5-5" />
+                <path d="M21 12H9" />
+              </svg>
+              <span>Cerrar Sesión</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main style={styles.main}>
-        <div style={styles.welcomeCard}>
-          <h2>Panel de Control Principal</h2>
-          <p style={styles.leadText}>
-            Bienvenido al sistema automatizado de gestión de nómina y personal.
-          </p>
+      <main className={styles.main}>
+        <section className={styles.welcomeCard}>
+          <div className={styles.welcomeContent}>
+            <span className={styles.eyebrow}>
+              <span className={styles.eyebrowDot} aria-hidden="true" />
+              Sesión activa
+            </span>
 
-          <div style={styles.infoGrid}>
-            <div style={styles.infoBox}>
-              <h3>ID de Usuario</h3>
-              <p style={styles.infoValue}>{user?.userId}</p>
-            </div>
-            <div style={styles.infoBox}>
-              <h3>Perfiles / Roles Asignados</h3>
-              <p style={styles.infoValue}>
-                {user?.profile && user.profile.length > 0 ? user.profile.join(', ') : 'Sin perfiles'}
-              </p>
+            <h2 className={styles.heading}>Panel de Control Principal</h2>
+            <p className={styles.lead}>
+              Bienvenido al sistema automatizado de gestión de nómina y personal.
+            </p>
+
+            <div className={styles.kpiGrid}>
+              <article className={styles.kpi}>
+                <div className={styles.kpiHeader}>
+                  <span className={styles.kpiIcon} aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </span>
+                  <span className={styles.kpiLabel}>ID de Usuario</span>
+                </div>
+                <span className={styles.kpiValue}>{user?.userId}</span>
+              </article>
+
+              <article className={styles.kpi}>
+                <div className={styles.kpiHeader}>
+                  <span className={styles.kpiIcon} aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2 4 6v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V6z" />
+                      <path d="m9 12 2 2 4-4" />
+                    </svg>
+                  </span>
+                  <span className={styles.kpiLabel}>Perfiles / Roles Asignados</span>
+                </div>
+                {profiles.length > 0 ? (
+                  <div className={styles.badgeList}>
+                    {profiles.map((profile) => (
+                      <span key={profile} className={styles.badge}>
+                        <span className={styles.badgeDot} aria-hidden="true" />
+                        {profile}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className={styles.badgeList}>
+                    <span className={styles.emptyBadge}>Sin perfiles</span>
+                  </div>
+                )}
+              </article>
             </div>
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );
 }
-
-// Inline styles for professional layout / Estilos en línea para diseño profesional
-const styles = {
-  container: {
-    minHeight: '100vh',
-    backgroundColor: '#f8f9fa',
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-  },
-  header: {
-    backgroundColor: '#ffffff',
-    borderBottom: '1px solid #e5e5e5',
-    padding: '15px 30px',
-  },
-  headerContent: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    maxWidth: '1200px',
-    margin: '0 auto',
-  },
-  brand: {
-    margin: '0',
-    fontSize: '20px',
-    color: '#0066cc',
-  },
-  userInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '20px',
-  },
-  welcomeText: {
-    fontSize: '15px',
-    color: '#333333',
-  },
-  logoutButton: {
-    padding: '8px 16px',
-    backgroundColor: '#dc3545',
-    color: '#ffffff',
-    border: 'none',
-    borderRadius: '5px',
-    fontSize: '14px',
-    fontWeight: '500',
-    cursor: 'pointer',
-  },
-  main: {
-    maxWidth: '1200px',
-    margin: '40px auto',
-    padding: '0 20px',
-  },
-  welcomeCard: {
-    backgroundColor: '#ffffff',
-    padding: '30px',
-    borderRadius: '10px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-  },
-  leadText: {
-    color: '#666666',
-    marginBottom: '30px',
-  },
-  infoGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '20px',
-  },
-  infoBox: {
-    backgroundColor: '#f8f9fa',
-    padding: '20px',
-    borderRadius: '8px',
-    border: '1px solid #eaeaea',
-  },
-  infoValue: {
-    fontSize: '18px',
-    fontWeight: '600',
-    color: '#0066cc',
-    marginTop: '8px',
-  },
-};
