@@ -1,0 +1,148 @@
+# ============================================================================
+# Sentencias SQL centralizadas del Sistema de Nómina
+# Todas las consultas del servidor viven aquí para no escribir SQL dentro del
+# código JavaScript. Se cargan en memoria mediante QueryLoader (js-yaml).
+# Base de datos: Neon PostgreSQL - tablas en SINGULAR
+# (person, user, profile, user_profile, subsystem, class, method, option,
+#  permission_method, permission_option)
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# Autenticación: usuario con sus perfiles (tablas user + person + user_profile)
+# ---------------------------------------------------------------------------
+getUserWithProfiles: |
+  SELECT
+      u.user_id,
+      u.username,
+      u.email,
+      u.password_hash,
+      p.first_name,
+      p.last_name,
+      COALESCE(pf.profile_ids, '{}') AS profile_ids,
+      COALESCE(pf.profile_names, '{}') AS profile_names
+  FROM "user" u
+  INNER JOIN person p
+      ON p.person_id = u.person_id
+  LEFT JOIN LATERAL (
+      SELECT
+          array_agg(up.profile_id ORDER BY up.profile_id) AS profile_ids,
+          array_agg(pr.profile_name ORDER BY up.profile_id) AS profile_names
+      FROM user_profile up
+      INNER JOIN profile pr
+          ON pr.profile_id = up.profile_id
+      WHERE up.user_id = u.user_id
+  ) pf ON TRUE
+  WHERE u.username = $1;
+
+# Perfiles asignados a un usuario (se usa para armar la sesión)
+getUserProfiles: |
+  SELECT
+      up.profile_id,
+      pr.profile_name
+  FROM user_profile up
+  INNER JOIN profile pr
+      ON pr.profile_id = up.profile_id
+  WHERE up.user_id = $1
+  ORDER BY up.profile_id;
+
+# ---------------------------------------------------------------------------
+# Permisos: permisos de métodos y opciones del usuario (por sus perfiles)
+# ---------------------------------------------------------------------------
+loadUserPermissions: |
+  SELECT
+      s.subsystem_id,
+      c.class_id,
+      m.method_id,
+      up.profile_id,
+      pm.is_allowed
+  FROM user_profile up
+  INNER JOIN permission_method pm
+      ON pm.profile_id = up.profile_id
+  INNER JOIN method m
+      ON m.method_id = pm.method_id
+  INNER JOIN class c
+      ON c.class_id = m.class_id
+  INNER JOIN subsystem s
+      ON s.subsystem_id = c.subsystem_id
+  WHERE up.user_id = $1;
+
+loadUserOptionPermissions: |
+  SELECT
+      s.subsystem_id,
+      o.option_id,
+      up.profile_id,
+      po.is_allowed
+  FROM user_profile up
+  INNER JOIN permission_option po
+      ON po.profile_id = up.profile_id
+  INNER JOIN option o
+      ON o.option_id = po.option_id
+  INNER JOIN subsystem s
+      ON s.subsystem_id = o.subsystem_id
+  WHERE up.user_id = $1;
+
+# ---------------------------------------------------------------------------
+# Catálogos: permiten resolver nombres del payload JSON a IDs de tabla
+# ---------------------------------------------------------------------------
+getSubsystems: |
+  SELECT
+      subsystem_id,
+      subsystem_name
+  FROM subsystem
+  ORDER BY subsystem_id;
+
+getClasses: |
+  SELECT
+      class_id,
+      subsystem_id,
+      class_name
+  FROM class
+  ORDER BY class_id;
+
+getMethods: |
+  SELECT
+      method_id,
+      class_id,
+      method_name
+  FROM method
+  ORDER BY method_id;
+
+getOptions: |
+  SELECT
+      option_id,
+      subsystem_id,
+      option_name
+  FROM option
+  ORDER BY option_id;
+
+# ---------------------------------------------------------------------------
+# Procesos de nómina: datos usados por las clases/métodos del despachador
+# ---------------------------------------------------------------------------
+getPayrollSummaryStats: |
+  SELECT
+      (SELECT COUNT(*) FROM person) AS employee_count,
+      (SELECT COUNT(*) FROM "user") AS user_count,
+      (SELECT COUNT(*) FROM profile) AS profile_count,
+      (SELECT COUNT(*) FROM subsystem) AS subsystem_count,
+      (SELECT COUNT(*) FROM permission_method) AS method_permission_count;
+
+getEmployeesWithProfiles: |
+  SELECT
+      p.person_id,
+      p.first_name,
+      p.last_name,
+      u.user_id,
+      u.username,
+      COALESCE(
+          array_agg(pr.profile_name) FILTER (WHERE pr.profile_name IS NOT NULL),
+          '{}'
+      ) AS profiles
+  FROM person p
+  LEFT JOIN "user" u
+      ON u.person_id = p.person_id
+  LEFT JOIN user_profile up
+      ON up.user_id = u.user_id
+  LEFT JOIN profile pr
+      ON pr.profile_id = up.profile_id
+  GROUP BY p.person_id, u.user_id, u.username
+  ORDER BY p.person_id;

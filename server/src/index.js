@@ -2,47 +2,58 @@ import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
 import dotenv from 'dotenv';
-import authRoutes from './routes/authRoutes.js';
+import apiRoutes from './routes/apiRoutes.js';
+import { securityManager } from './security/SecurityManager.js';
+import { queryLoader } from './security/QueryLoader.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Middleware for CORS allowing credentials (cookies/session) / Middleware de CORS permitiendo credenciales
+// Middleware de CORS que permite credenciales (cookies/sesiones)
 app.use(
   cors({
-    origin: 'http://localhost:5173', // Frontend Vite URL / URL del frontend de Vite
-    credentials: true,             // Required for cookies/sessions / Requerido para cookies/sesiones
-  })
+    origin: 'http://localhost:5173', // URL del frontend de Vite
+    credentials: true,               // Requerido para cookies/sesiones
+  }),
 );
 
-// Middleware to parse JSON bodies / Middleware para parsear cuerpos JSON
+// Middleware para parsear cuerpos JSON
 app.use(express.json());
 
-// Express-session configuration / Configuración de express-session
+// Configuración de express-session
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'sistema_nomina_secret_key_2026',
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false,   // true if using HTTPS / true si se usa HTTPS
-      httpOnly: true,  // prevents client-side JS from reading the cookie / previene lectura de cookie por JS del cliente
-      maxAge: 1000 * 60 * 60 * 24, // 1 day / 1 día
+      secure: false,   // true si se usa HTTPS
+      httpOnly: true,  // previene que el JS del cliente lea la cookie
+      maxAge: 1000 * 60 * 60 * 24, // 1 día
     },
-  })
+  }),
 );
 
-// Routes / Rutas
-app.use('/api', authRoutes);
+// Rutas (autenticación + despachador dinámico /toProcess)
+app.use('/api', apiRoutes);
 
-// Root route / Ruta raíz
+// Ruta raíz
 app.get('/', (req, res) => {
   res.send('Sistema de Nomina API running successfully');
 });
 
-// Start server / Iniciar servidor
-app.listen(PORT, () => {
+// Iniciar servidor
+app.listen(PORT, async () => {
+  // Precarga de catálogos y verificación de las consultas YAML al arrancar
+  try {
+    await securityManager.loadCatalogs();
+    console.log(`Query loader ready: ${queryLoader.size} SQL statements loaded from YAML`);
+    console.log('Security catalogs loaded: subsystems, classes, methods and options');
+  } catch (error) {
+    console.error('Startup preload error:', error?.message);
+  }
+
   console.log(`Server running on port ${PORT}`);
 });
